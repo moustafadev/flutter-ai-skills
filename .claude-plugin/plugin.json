@@ -1,0 +1,10 @@
+{
+  "name": "flutter-ai-skills",
+  "description": "Guardrails that stop common LLM mistakes in Flutter: version-aware package rules, surgical changes, no deprecated APIs, RTL/l10n, and automatic dart format + analyze after every edit.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Mostafa Omar"
+  },
+  "license": "MIT",
+  "keywords": ["flutter", "dart", "guidelines", "bloc", "riverpod", "go_router", "dio", "freezed", "rtl", "l10n", "ui", "design"]
+}

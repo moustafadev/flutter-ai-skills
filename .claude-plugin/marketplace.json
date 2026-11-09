@@ -1,0 +1,20 @@
+{
+  "name": "flutter-ai-skills",
+  "owner": {
+    "name": "Mostafa Omar"
+  },
+  "metadata": {
+    "description": "Flutter guardrails for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "flutter-ai-skills",
+      "source": "./",
+      "description": "Version-aware Flutter package rules, surgical changes, RTL/l10n, and auto format + analyze hooks",
+      "version": "1.1.0",
+      "category": "development",
+      "keywords": ["flutter", "dart"]
+    }
+  ]
+}

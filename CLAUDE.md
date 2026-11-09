@@ -1,0 +1,132 @@
+# CLAUDE.md — Flutter
+
+Behavioral guidelines that reduce the most common mistakes LLMs make when writing Flutter/Dart code.
+Merge with project-specific instructions as needed.
+
+**Tradeoff:** these rules bias toward correctness over speed. For trivial edits, use judgment.
+
+---
+
+## 0. The project is the source of truth — not your memory
+
+Flutter packages ship breaking changes constantly. What you remember about an API is probably
+from a different major version than the one installed.
+
+Before writing code that touches a package:
+- Read `pubspec.yaml` **and** `pubspec.lock` — the lock file has the exact installed version.
+- Check the Flutter version: `.fvmrc` / `.fvm/` (FVM) or the `environment:` block in `pubspec.yaml`.
+- If you're not 100% sure an API exists in that version, read the package's real source:
+  `~/.pub-cache/hosted/pub.dev/<package>-<version>/` (`lib/`, `CHANGELOG.md`, `example/`).
+- Never invent a package version. Add dependencies with `flutter pub add <pkg>`, never by typing a version number.
+
+## 1. Follow the project's stack. Never add a second one.
+
+Find out what the project already uses for each job, and use exactly that:
+
+| Job | Typical options (pick what the project already has) |
+|---|---|
+| State management | flutter_bloc, provider, riverpod, getx, mobx, setState |
+| Dependency injection | get_it, injectable, riverpod, provider |
+| Routing | go_router, auto_route, Navigator 2 |
+| Networking | dio, retrofit, http, chopper |
+| Models / codegen | freezed, json_serializable, equatable, hand-written |
+| Local storage | shared_preferences, hive / hive_ce, isar, drift, sqflite |
+| Localization | easy_localization, flutter_localizations + gen-l10n (ARB), slang |
+| Error handling | dartz / fpdart `Either`, sealed `Result`, exceptions |
+
+- Don't add a package for a job the project already handles.
+- If the project *already* mixes two (e.g. `http` + `dio`, `go_router` + `auto_route`), follow the one the
+  surrounding feature uses, and **mention** the duplication — don't migrate it unasked.
+- Copy the structure of the nearest existing feature: folder layout, naming, file suffixes
+  (`_cubit.dart`, `_state.dart`, `_repository_impl.dart`…), how errors flow to the UI.
+
+## 2. Think before coding
+
+- State your assumptions. If the request has multiple readings, list them — don't pick silently.
+- Ask *before* implementing when it touches: state shape, navigation flow, API contracts, or new permissions.
+- If a simpler approach exists, say so.
+
+## 3. Simplicity first
+
+- Minimum code that solves the request. No speculative features, abstractions, or "configurability".
+- Don't create a repository + use case + data source + mapper for a one-off call **unless the project's
+  architecture already does that** for every feature (then do exactly what it does — consistency wins).
+- If 200 lines could be 50, rewrite it.
+
+## 4. Surgical changes
+
+- Touch only what the task needs. Don't reformat, rename, or "modernize" neighbouring code.
+- Don't run `dart fix --apply` on the whole project unasked — it rewrites files you didn't mean to touch.
+- Remove imports/variables that *your* change orphaned. Mention pre-existing dead code; don't delete it.
+- Never hand-edit generated files (`*.g.dart`, `*.freezed.dart`, `*.config.dart`, `*.gr.dart`, `l10n/*.dart`
+  outputs). Edit the source and regenerate.
+
+## 5. Flutter correctness rules
+
+**Widgets**
+- Split big `build()` methods into small `StatelessWidget`/`StatefulWidget` classes — not `Widget _buildX()` helpers.
+- Use `const` constructors wherever possible.
+- Never do work in `build()`: no network calls, no `Future` creation, no heavy computation, no controller creation.
+- Create controllers (`TextEditingController`, `AnimationController`, `ScrollController`, `FocusNode`,
+  `StreamSubscription`) in `initState` and dispose them in `dispose`.
+- `ListView(children: [...])` for long/dynamic lists → use `ListView.builder` / `.separated`.
+- Use `Key`s when reordering/filtering lists of stateful widgets.
+
+**Async + BuildContext**
+- After any `await`, check `if (!context.mounted) return;` (or `if (!mounted) return;` in `State`) before using `context`.
+- Never call `setState` after `dispose`.
+- Handle every `Future`: `await` it, or wrap with `unawaited(...)` deliberately.
+
+**Null safety + Dart 3**
+- No `!` unless you can prove non-null. Prefer `?.`, `??`, early returns, and pattern matching.
+- Prefer `switch` expressions, records, and `sealed` classes for state/result types.
+- Don't use `dynamic` to silence the type checker.
+
+**Deprecated APIs** — treat `deprecated_member_use` warnings in *your new code* as errors. Common ones:
+
+| Don't write | Write |
+|---|---|
+| `color.withOpacity(0.5)` | `color.withValues(alpha: 0.5)` |
+| `WillPopScope` | `PopScope` + `onPopInvokedWithResult` |
+| `MaterialStateProperty`, `MaterialState` | `WidgetStateProperty`, `WidgetState` |
+| `MediaQuery.textScaleFactorOf` / `textScaleFactor:` | `MediaQuery.textScalerOf` / `textScaler:` |
+| `ButtonBar` | `OverflowBar` |
+| `colorScheme.background` / `surfaceVariant` | `colorScheme.surface` / `surfaceContainerHighest` |
+| `color.value`, `.red`, `.green` | `color.toARGB32()`, `.r`, `.g` (note: `.r/.g/.b/.a` are 0.0–1.0 doubles, not 0–255) |
+
+If unsure whether something is deprecated in the project's Flutter version, `flutter analyze` is the judge.
+
+**Platform setup** — any feature that needs a permission or native config is not done until:
+- iOS: `ios/Runner/Info.plist` usage descriptions (`NSCameraUsageDescription`, `NSLocationWhenInUseUsageDescription`, …).
+- Android: `android/app/src/main/AndroidManifest.xml` permissions, `minSdk` if the package requires it.
+- If you can't verify the native side, say exactly which lines the user must add.
+
+**Strings + layout**
+- No hardcoded user-facing strings if the project has localization — use its l10n system.
+- Use `EdgeInsetsDirectional`, `AlignmentDirectional`, `start/end` — not `left/right` — so RTL works.
+
+## 6. Goal-driven execution — "done" means verified
+
+A Flutter task is **not done** until these pass for the files you touched:
+
+```
+1. dart format <changed files>
+2. flutter analyze            → no new errors or warnings
+3. dart run build_runner build --delete-conflicting-outputs   (if you touched annotated code)
+4. flutter test               (if the project has tests for this area)
+```
+
+Use the project's Flutter (`fvm flutter …` / `fvm dart …` if the project has `.fvmrc`).
+
+Turn tasks into checkable goals:
+- "Fix the bug" → write a test (unit / bloc / widget) that reproduces it, then make it pass.
+- "Add a screen" → screen renders, navigation works, analyze is clean, strings are localized.
+- "Add an API call" → model parses a real response sample, errors map to the project's failure type.
+
+If you could not run a step, say so explicitly. Never claim it works without running it.
+
+---
+
+**These rules are working if:** no new analyzer warnings, no surprise packages in `pubspec.yaml`,
+diffs only touch what was asked, generated files are regenerated not hand-edited, and new code looks
+like it was written by the same team as the rest of the project.
