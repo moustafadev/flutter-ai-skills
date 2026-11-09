@@ -32,7 +32,7 @@ LLMs writing Flutter code tend to:
 | `skills/flutter-testing` | Verification loop, bug-fix-by-test, bloc / widget / golden tests with the tools you already have. |
 | `skills/flutter-l10n-rtl` | easy_localization / gen-l10n / slang, RTL-safe layout, number, date, and money formatting. |
 | `hooks/session-context.sh` | **SessionStart:** prints the project's Flutter version (FVM-aware) and every direct dependency with its exact locked version, grouped by job. It also warns when the project already has two packages for the same job. |
-| `hooks/dart-check.sh` | **PostToolUse:** after every edit to a `.dart` file, runs `dart format` and `dart analyze` with the project's own SDK. Errors and warnings go straight back to Claude so it fixes them. It also reminds Claude to run `build_runner` when a `part` file is stale. |
+| `hooks/dart-check.sh` | **PostToolUse:** after every edit to a `.dart` file, runs `dart format` and `dart analyze` with the project's own SDK. Errors and warnings go straight back to Claude so it fixes them. Deprecated APIs and `BuildContext` used across async gaps are reported too, but only on lines Claude changed, so pre-existing issues stay out of scope. It also reminds Claude to run `build_runner` when a `part` file is stale. |
 | `.cursor/rules/` | The core rules as a Cursor project rule. |
 | `EXAMPLES.md` | Before/after code for each rule. |
 

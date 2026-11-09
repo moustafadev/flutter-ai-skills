@@ -32,7 +32,7 @@
 | `skills/flutter-testing` | الـ verification loop، والـ bug fix بيبدأ بـ failing test، وbloc / widget / golden tests بالـ tooling الموجود في المشروع |
 | `skills/flutter-l10n-rtl` | easy_localization وgen-l10n وslang، وRTL-safe layout، وformatting للأرقام والتواريخ والفلوس |
 | `hooks/session-context.sh` | **SessionStart:** بيطبع الـ Flutter version (وبيقرا FVM)، وكل direct dependency بالـ locked version بالظبط، متقسمين حسب الـ responsibility. ولو فيه أكتر من package بتعمل نفس الوظيفة بيطلّع warning |
-| `hooks/dart-check.sh` | **PostToolUse:** بعد أي edit في file بامتداد `.dart`، بيشغّل `dart format` و`dart analyze` بالـ SDK بتاع المشروع نفسه. الـ errors والـ warnings بترجع لـ Claude على طول يعملها fix. وبيفكّره بـ `build_runner` لو الـ generated `part` file بقى stale |
+| `hooks/dart-check.sh` | **PostToolUse:** بعد أي edit في file بامتداد `.dart`، بيشغّل `dart format` و`dart analyze` بالـ SDK بتاع المشروع نفسه. الـ errors والـ warnings بترجع لـ Claude على طول يعملها fix. وبيمسك كمان الـ deprecated APIs والـ `BuildContext` اللي بيتستخدم بعد `await`، بس في السطور اللي Claude غيّرها بس، عشان الـ issues القديمة تفضل out of scope. وبيفكّره بـ `build_runner` لو الـ generated `part` file بقى stale |
 | `.cursor/rules/` | الـ core rules كـ Cursor project rule |
 | `EXAMPLES.md` | أمثلة before/after لكل rule |
 

@@ -146,7 +146,7 @@ PopScope(
 )
 ```
 
-The PostToolUse hook catches anything missed: `dart analyze` reports `deprecated_member_use` and Claude fixes it right away.
+The PostToolUse hook catches anything missed. It reports `deprecated_member_use` on the lines Claude just changed, and Claude fixes it right away.
 
 ---
 

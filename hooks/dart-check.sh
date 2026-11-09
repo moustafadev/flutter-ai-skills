@@ -22,8 +22,21 @@ cd "$ROOT" || exit 0
 
 "$DART" format "$FILE" >/dev/null 2>&1
 
+# Lines changed vs HEAD ("ALL" if the file is new/untracked or there's no git repo).
+# Used so INFO-level issues are only reported on lines Claude touched — pre-existing ones stay out of scope.
+CHANGED="ALL"
+if git -C "$ROOT" ls-files --error-unmatch "$FILE" >/dev/null 2>&1; then
+  CHANGED="$(git -C "$ROOT" diff -U0 HEAD -- "$FILE" 2>/dev/null | awk '
+    /^@@/ { split($3, a, ","); s = substr(a[1], 2); n = (a[2] == "" ? 1 : a[2]); for (i = 0; i < n; i++) printf "%d,", s + i }')"
+fi
+
 # Machine format: SEVERITY|TYPE|CODE|FILE|LINE|COL|LEN|MESSAGE
-ISSUES="$("$DART" analyze --format=machine "$FILE" 2>&1 | grep -E '^(ERROR|WARNING)\|' | head -20)"
+# ERROR/WARNING anywhere in the file; plus a few INFO codes that are real bugs, but only on changed lines.
+ISSUES="$("$DART" analyze --format=machine "$FILE" 2>&1 | awk -F'|' -v changed=",$CHANGED" '
+  $1 == "ERROR" || $1 == "WARNING" { print; next }
+  $1 == "INFO" && $3 ~ /^(DEPRECATED_MEMBER_USE|USE_BUILD_CONTEXT_SYNCHRONOUSLY)$/ {
+    if (changed == ",ALL" || index(changed, "," $5 ",")) print
+  }' | head -20)"
 
 MSGS=""
 if [ -n "$ISSUES" ]; then
