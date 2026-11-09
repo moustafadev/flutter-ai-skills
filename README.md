@@ -40,14 +40,15 @@ LLMs writing Flutter code tend to:
 
 ```
 ## Flutter project stack (from pubspec.lock — trust these versions over memory)
-Flutter (FVM): 3.44.4  → use `fvm flutter` / `fvm dart`
-  State:             flutter_bloc 9.1.1
-  DI:                get_it 8.3.0, injectable 2.7.1+4
-  Network:           dio 5.9.2, retrofit 4.9.2
-  Models:            freezed 3.2.5, freezed_annotation 3.1.0, json_serializable 6.11.4
-  Storage:           shared_preferences 2.5.5, hive_ce 2.19.3
-  Localization:      easy_localization 3.0.8
-⚠ Multiple packages for the same job: routing, http+dio. Follow whichever the code you're editing already uses.
+Flutter (FVM): 3.35.3  → use `fvm flutter` / `fvm dart`
+  State:             flutter_bloc 8.1.6, bloc 8.1.4, provider 6.1.5
+  DI:                get_it 8.1.0
+  Routing:           go_router 14.8.1, auto_route 9.3.0+1
+  Network:           dio 5.8.0+1, http 1.4.0
+  Models:            freezed 2.5.8, freezed_annotation 2.4.4, json_serializable 6.9.5, json_annotation 4.9.0, equatable 2.0.7
+  Storage:           shared_preferences 2.5.3
+  Localization:      easy_localization 3.0.8, flutter_localizations sdk, intl 0.20.2
+⚠ Multiple packages for the same job: state-management, routing, http+dio. Follow whichever the code you're editing already uses; mention it, don't migrate unasked.
 ```
 
 ## Install
